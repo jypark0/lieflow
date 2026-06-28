@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lieflow"
+version = "0.1.0"
+description = "Symmetry Discovery with Flow Matching"
+authors = [
+  {name = "Jung Yeon Park", email = "park.jungy@northeastern.edu"},
+  {name = "Yuxuan Chen", email = "chen.yuxuan7@northeastern.edu"},
+]
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+  "numpy",
+  "scipy",        # matrix log / Beta ppf / Rotation groups
+  "matplotlib",
+  "tqdm",
+  "torch",
+  "torch_geometric",  # ModelNet10 auto-download / loading
+  "hydra-core",
+  "wandb",
+  "POT",          # Optimal transport (Wasserstein-1 distance evaluation)
+  "omegaconf",    # Hydra config primitive
+]
+
+[tool.ruff]
+line-length = 88 # to match default line length in black
+
+[tool.black]
+preview = true

@@ -1,0 +1,40 @@
+# @package _global_
+# ModelNet10 dataset with SO(2) rotation around z-axis
+dataset:
+  name: SO2_modelnet10
+  group: "SO(2)"
+  
+  train:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.MultiObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.SO2To3DDistribution
+        # Uniform distribution over [-pi, pi] (default)
+        # For Gaussian around 0: use coeff_dist with Normal distribution
+      base_objects:
+        _target_: lieflow.data.ModelNet10.dataset.ModelNet10Loader
+        root: data/ModelNet10
+        split: "train"
+        n_points: 128
+        n_samples_per_class: 10  # Load 1 sample per class (10 classes total)
+        random_seed: 42
+    num_samples: 50_000  # Total training samples
+    return_transform: false
+
+  # Uncomment to use separate test set:
+  test:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.MultiObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.SO2To3DDistribution
+      base_objects:
+        _target_: ${dataset.train.dist.base_objects._target_}
+        root: ${dataset.train.dist.base_objects.root}
+        split: ${dataset.train.dist.base_objects.split}
+        n_points: ${dataset.train.dist.base_objects.n_points}
+        n_samples_per_class: ${dataset.train.dist.base_objects.n_samples_per_class}
+        random_seed: ${dataset.train.dist.base_objects.random_seed}
+    num_samples: 5_000
+    return_transform: true

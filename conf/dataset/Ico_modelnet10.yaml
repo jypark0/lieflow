@@ -1,0 +1,45 @@
+# @package _global_
+# ModelNet10 dataset with Icosahedral group transformation
+dataset:
+  name: Ico_modelnet10
+  group: "I"
+  
+  train:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.MultiObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.DiscreteDeltaMixture
+        group: ${dataset.group}
+        locs:
+          _target_: lieflow.distributions.finite_group_elements_on_R3
+          group: "I"  # Icosahedral group (60 elements)
+      base_objects:
+        _target_: lieflow.data.ModelNet10.dataset.ModelNet10Loader
+        root: data/ModelNet10
+        split: "train"
+        n_points: 128
+        n_samples_per_class: 10
+        random_seed: 42
+    num_samples: 50_000
+    return_transform: false
+
+  test:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.MultiObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.DiscreteDeltaMixture
+        group: ${dataset.group}
+        locs:
+          _target_: lieflow.distributions.finite_group_elements_on_R3
+          group: "I"
+      base_objects:
+        _target_: ${dataset.train.dist.base_objects._target_}
+        root: ${dataset.train.dist.base_objects.root}
+        split: ${dataset.train.dist.base_objects.split}
+        n_points: ${dataset.train.dist.base_objects.n_points}
+        n_samples_per_class: ${dataset.train.dist.base_objects.n_samples_per_class}
+        random_seed: ${dataset.train.dist.base_objects.random_seed}
+    num_samples: 5_000
+    return_transform: true

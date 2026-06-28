@@ -1,0 +1,53 @@
+# @package _global_
+# Flow matching model for MI-Motion skeleton SO(3) symmetry discovery.
+#
+# Prior group:    SO(3) – full 3D rotation group (continuous)
+# Network:        Small Transformer (same architecture as the ModelNet10 transformer configs)
+# Point cloud:    20 joints × 3D per skeleton frame
+#
+# Training idea:
+#   Given a skeleton x₁ (canonical orientation), sample R ~ Uniform(SO3),
+#   form x₀ = x₁ @ Rᵀ (randomly rotated), then train the flow to map
+#   x₀ back toward a canonical orientation.  The stationary distribution
+#   of the canonicalized transforms reveals the underlying symmetry group
+#   of the human skeleton (expected to be discrete, e.g., the bilateral
+#   reflection symmetry or a 2-element group).
+#
+# Run with:
+#   python experiments/flow_matching_3d.py \
+#       dataset=SO3_MI_Motion_skeleton \
+#       model=flow_matching/SO3_MI_Motion_skeleton
+
+dataset:
+  batch_size: 1024
+  num_workers: 4
+
+model:
+  _target_: lieflow.flow_matching.arrow.model.Flow_SO3
+  device: ${device}
+  net:
+    _target_: lieflow.flow_matching.arrow.net.TransformerTimeEmbedding
+    in_dim: 3           # 3D joint positions
+    out_dim: 3          # so(3) Lie algebra element (axis-angle 3-vector)
+    hidden_dim: 256     # small transformer for efficient training
+    num_heads: 4
+    num_layers: 2
+    time_embed_dim: 64
+  prior_dist:
+    _target_: lieflow.distributions.SO3UniformDistribution
+  max_grad_norm: 1.0
+  time_sampling: "power"
+  time_sampling_kwargs:
+    skewness: 5.0
+
+optimizer:
+  _target_: torch.optim.AdamW
+  lr: 1e-4
+  weight_decay: 0.01
+
+train:
+  epochs: 5000
+
+test:
+  epoch_interval: 10
+  n_steps: 50

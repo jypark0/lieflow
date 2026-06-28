@@ -1,0 +1,51 @@
+# @package _global_
+# GL(2,R)+ -> C4  with Lie-algebra-coefficients sampling (L).
+#
+# Paper Appendix C / Table 1, "(L)" prior:
+#   Sample a, b, c, d ~ U[-pi, pi] independently and form
+#       A = [[a, b], [c, d]],
+#   then the group element is g = exp(A) (matrix exponential).
+#
+# This is one of the two GL(2,R)+ priors in Table 1; see
+# GL2_to_C4_arrow_M.yaml for the matrix-composition prior.
+dataset:
+  batch_size: 1024
+  num_workers: 4
+
+model:
+  _target_: lieflow.flow_matching.arrow.model.Flow
+  device: ${device}
+  net:
+    _target_: lieflow.flow_matching.arrow.net.MLPSinusoidTimeEmbedding
+    in_dim: 26 # [13, 2] vectors (13 points, 2 coords)
+    out_dim: 4
+    hidden_dim: 128
+  prior_dist:
+    _target_: lieflow.distributions.GL2PlusPushforwardDistribution
+    det_range: [0.5, 2]
+    # Lie algebra coefficients (a, b, c, d) ~ U[-pi, pi]^4 (paper Appendix C).
+    coeff_dist:
+      _target_: torch.distributions.Independent
+      reinterpreted_batch_ndims: 1
+      base_distribution:
+        _target_: torch.distributions.Uniform
+        low:
+          _target_: torch.tensor
+          data: [-3.141592, -3.1415926, -3.1415926, -3.1415926]
+        high:
+          _target_: torch.tensor
+          data: [3.1415926, 3.1415926, 3.1415926, 3.1415926]
+  time_sampling: "power"
+  time_sampling_kwargs:
+    skewness: 5.0
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 3e-3
+
+train:
+  epochs: 1000
+
+test:
+  epoch_interval: 10
+  n_steps: 20

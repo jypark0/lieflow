@@ -1,0 +1,21 @@
+seed: 1006
+device: cuda
+
+save_dir: "${hydra:run.dir}"
+
+logger:
+  _target_: lieflow.logger.WandBLogger
+  entity: null
+  dir: "."
+  project: ${dataset.name}
+  name: null
+  tags: null
+  id: null # pass wandb id to resume
+
+defaults:
+  - dataset: ???
+  # The model config must be specified explicitly on the CLI, e.g.
+  #   model=flow_matching/SO2_to_C4_arrow
+  # The default below is a placeholder that must be overridden.
+  - model: ???
+  - _self_

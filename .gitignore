@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+
+# Hydra / experiment outputs
+outputs/
+multirun/
+
+# Weights & Biases
+wandb/
+
+# Datasets (downloaded / generated)
+data/
+
+# macOS
+.DS_Store

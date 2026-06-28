@@ -1,0 +1,53 @@
+# @package _global_
+# ModelNet10 dataset for the SO(2)(b) experiment: rotations around the
+# tilted axis (0, 1/2, -sqrt(3)/2). This is the second SO(2) variant in
+# the paper (see Table 2(a) / Table 2(b)):
+#
+#   SO(2)(a) -> rotations around the z-axis           (config: SO2_modelnet10)
+#   SO(2)(b) -> rotations around (0, 1/2, -sqrt(3)/2) (this config)
+#
+# We reuse MultiAxisRotation3DDistribution with a *single* axis, which is
+# why the underlying class name still says "MultiAxis". The semantic name
+# of this dataset is SO(2)(b).
+dataset:
+  name: SO2_b_modelnet10
+  group: "SO(2)_b"
+
+  train:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.MultiObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.MultiAxisRotation3DDistribution
+        # SO(2)(b): single rotation axis (0, 1/2, -sqrt(3)/2).
+        # Uniform distribution over [-pi, pi] for rotation angles (default).
+        rotation_axes:
+          - [0., 0.5, -0.866]
+        coeff_dist: null     # null uses Uniform(-pi, pi)
+      base_objects:
+        _target_: lieflow.data.ModelNet10.dataset.ModelNet10Loader
+        root: data/ModelNet10
+        split: "train"
+        n_points: 128
+        n_samples_per_class: 10  # 10 samples per class (10 classes total)
+        random_seed: 42
+    num_samples: 50_000  # Total training samples
+    return_transform: false
+
+  test:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.MultiObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.MultiAxisRotation3DDistribution
+        rotation_axes: ${dataset.train.dist.base_dist.rotation_axes}
+        coeff_dist: ${dataset.train.dist.base_dist.coeff_dist}
+      base_objects:
+        _target_: ${dataset.train.dist.base_objects._target_}
+        root: ${dataset.train.dist.base_objects.root}
+        split: ${dataset.train.dist.base_objects.split}
+        n_points: ${dataset.train.dist.base_objects.n_points}
+        n_samples_per_class: ${dataset.train.dist.base_objects.n_samples_per_class}
+        random_seed: ${dataset.train.dist.base_objects.random_seed}
+    num_samples: 5_000
+    return_transform: true

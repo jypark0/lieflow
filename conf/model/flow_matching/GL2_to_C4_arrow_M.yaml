@@ -1,0 +1,46 @@
+# @package _global_
+# GL(2,R)+ -> C4  with matrix-composition based sampling (M).
+#
+# Paper Appendix C / Table 1, "(M)" prior:
+#   Sample theta ~ U[-pi, pi], (sx, sy) ~ U[0.5, 2.0], sh ~ U[-1, 1] and
+#   compose
+#       g = R(theta) * diag(sx, sy) * shear(sh).
+#   Reject any matrix with det outside (0, 2] to stay in GL(2,R)+ and
+#   keep the result numerically stable.
+#
+# This is one of the two GL(2,R)+ priors in Table 1; the paper finds that
+# the matrix-composition prior (M) is superior to the Lie-algebra-
+# coefficients prior (L). See GL2_to_C4_arrow_L.yaml for (L).
+dataset:
+  batch_size: 1024
+  num_workers: 4
+
+model:
+  _target_: lieflow.flow_matching.arrow.model.Flow
+  device: ${device}
+  net:
+    _target_: lieflow.flow_matching.arrow.net.MLPSinusoidTimeEmbedding
+    in_dim: 26 # [13, 2] vectors (13 points, 2 coords)
+    out_dim: 4
+    hidden_dim: 128
+  prior_dist:
+    _target_: lieflow.distributions.GL2RotationScaleShearDistribution
+    scale_range: [0.5, 2.0]   
+    shear_range: [-1.0, 1.0]   
+    det_range: [-2.0, 2.0]
+    allow_negative_det: true
+    prob_negative_det: 0.0
+  time_sampling: "power"
+  time_sampling_kwargs:
+    skewness: 5.0
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 3e-3
+
+train:
+  epochs: 1000
+
+test:
+  epoch_interval: 10
+  n_steps: 20

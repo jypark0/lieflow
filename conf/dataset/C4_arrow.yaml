@@ -1,0 +1,37 @@
+# @package _global_
+dataset:
+  name: C4_arrow
+  group: "C_4"
+  train:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.ObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.DiscreteDeltaMixture
+        group: ${dataset.group}
+        locs:
+          _target_: lieflow.distributions.Cn_elements_on_R2
+          group_order: 4
+          representation: "matrix"
+      base_object:
+        _target_: lieflow.data.objects.Object
+        name: "arrow"
+    num_samples: 20_000
+    return_transform: False
+
+  test:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.ObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.DiscreteDeltaMixture
+        group: ${dataset.group}
+        locs:
+          _target_: lieflow.distributions.Cn_elements_on_R2
+          group_order: 4
+          representation: "matrix"
+      base_object:
+        _target_: lieflow.data.objects.Object
+        name: "arrow"
+    num_samples: 5_000
+    return_transform: true

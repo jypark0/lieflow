@@ -1,0 +1,28 @@
+# @package _global_
+dataset:
+  name: SO2_irreg_tet
+  group: "SO(2)"
+  train:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.ObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.SO2To3DDistribution
+      base_object:
+        _target_: lieflow.data.objects.Object
+        name: "irreg_tet"
+    num_samples: 20_000
+    return_transform: False
+
+  test:
+    _target_: lieflow.data.sampling_dataset.DistributionSamplingDataset
+    dist:
+      _target_: lieflow.distributions.ObjectTransformDistribution
+      base_dist:
+        _target_: lieflow.distributions.SO2To3DDistribution
+      base_object:
+        _target_: ${dataset.train.dist.base_object._target_}
+        name: ${dataset.train.dist.base_object.name}
+    num_samples: 5_000
+    return_transform: true
+

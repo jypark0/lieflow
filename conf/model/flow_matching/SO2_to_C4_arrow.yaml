@@ -1,0 +1,30 @@
+# @package _global_
+dataset:
+  batch_size: 1024
+  num_workers: 4
+
+model:
+  _target_: lieflow.flow_matching.arrow.model.Flow
+  device: ${device}
+  net:
+    _target_: lieflow.flow_matching.arrow.net.MLPSinusoidTimeEmbedding
+    in_dim: 26 # [13,2] vectors
+    out_dim: 4
+    hidden_dim: 128
+  prior_dist:
+    _target_: lieflow.distributions.SO2PushforwardDistribution
+    representation: "matrix"
+  time_sampling: "power"
+  time_sampling_kwargs:
+    skewness: 5.0    
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 3e-3
+
+train:
+  epochs: 1000
+
+test:
+  epoch_interval: 10
+  n_steps: 20
