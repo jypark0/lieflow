@@ -125,7 +125,7 @@ Download the raw dataset following the instructions in the
 <https://github.com/xiaogangpeng/SocialTGCN> repo.
 
 ```bash
-# Place the raw MI-Motion data under data/MI-Motion/raw/
+# Place the raw MI-Motion data under data/MI-Motion/
 # (S0/, S1/, ..., S4/ folders containing .npy sequence files)
 python scripts/extract_mi_motion_skeletons.py
 # → writes data/MI-Motion/skeletons_normalized.npy
