@@ -33,7 +33,7 @@ from tqdm import tqdm
 # Configuration
 # ---------------------------------------------------------
 
-DATA_DIR = Path("data/MI-Motion/raw")
+DATA_DIR = Path("data/MI-Motion")
 OUTPUT_DIR = Path("data/MI-Motion")
 
 SCENES = ["S0", "S1", "S2", "S3", "S4"]

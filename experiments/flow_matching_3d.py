@@ -1647,7 +1647,13 @@ def main(cfg):
                 gt_rots_gpu = torch.matmul(torch.matmul(g.unsqueeze(0), gt_rots_gpu), g_inv.unsqueeze(0))
                 gt_rots = gt_rots_gpu.to(gt_rots_device)
 
-            angles_hist_img = plot_so3_distribution(R, gt_rots=gt_rots)
+            # For the MI-Motion skeleton dataset there is no reliable ground-truth
+            # symmetry, so we do not overlay the GT reference points on the plot.
+            _dataset_name = OmegaConf.select(cfg, "dataset.name", default=None)
+            _is_mi_motion = _dataset_name == "SO3_MI_Motion_skeleton"
+            angles_hist_img = plot_so3_distribution(
+                R, gt_rots=None if _is_mi_motion else gt_rots
+            )
             logger.log_image(
                 "test/learned_transforms_distribution",
                 angles_hist_img,
@@ -1656,11 +1662,13 @@ def main(cfg):
             
             # For SO(2) datasets (or datasets with gt_group="SO2_z"), also plot
             # angle histogram around z-axis to inspect the learned SO(2) structure.
+            # The MI-Motion skeleton dataset is also expected to exhibit an
+            # (approximate) SO(2) symmetry around the z-axis, so plot it there too.
             _is_so2_z = OmegaConf.select(cfg, "dataset.gt_group", default=None) == "SO2_z"
             if not _is_so2_z and hasattr(test_dataset, 'dist') and test_dataset.dist is not None:
                 base_dist = test_dataset.dist.base_dist
                 _is_so2_z = hasattr(base_dist, 'group') and base_dist.group == "SO(2)"
-            if _is_so2_z:
+            if _is_so2_z or _is_mi_motion:
                 # Extract SO(2) rotation angles from canonicalized_transforms.
                 # For rotation around z-axis: R[1,0]=sin(θ), R[0,0]=cos(θ)
                 angles_z = torch.atan2(
@@ -1697,14 +1705,15 @@ def main(cfg):
             
             # Compute Wasserstein distance to prior distribution
             # Use full transformation matrices (4D or 3D)
-            wasserstein_dist = compute_wasserstein_distance(
-                canonicalized_transforms, test_tf
-            )
-            logger.log_all(
-                "test",
-                {"wasserstein_distance": wasserstein_dist},
-                {"epoch": epoch},
-            )
+            if not _is_mi_motion:
+                wasserstein_dist = compute_wasserstein_distance(
+                    canonicalized_transforms, test_tf
+                )
+                logger.log_all(
+                    "test",
+                    {"wasserstein_distance": wasserstein_dist},
+                    {"epoch": epoch},
+                )
 
             # ── Per-category evaluation for MultiSymmetryDataset ────────────
             # When the test dataset is a MultiSymmetryDataset (has .labels and

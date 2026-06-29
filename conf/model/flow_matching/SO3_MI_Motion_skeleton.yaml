@@ -46,7 +46,7 @@ optimizer:
   weight_decay: 0.01
 
 train:
-  epochs: 5000
+  epochs: 500
 
 test:
   epoch_interval: 10
